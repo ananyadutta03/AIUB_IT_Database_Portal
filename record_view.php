@@ -35,7 +35,6 @@ $FIELD_LABELS = [
     'room'                  => 'Room',
     'location'              => 'Location',
     'building'              => 'Building',
-    'section'               => 'Section',
     'ip_address'            => 'IP Address',
     'mac_address'           => 'MAC Address',
     'switch_port'           => 'Switch / Port',
@@ -52,7 +51,6 @@ $FIELD_LABELS = [
     'device_model'          => 'Device Model',
     'device_serial'         => 'Device S/N',
     'status'                => 'Status',
-    'serial_no'             => 'Serial No.',
     'notes'                 => 'Notes',
 ];
 ?>
@@ -68,11 +66,6 @@ $FIELD_LABELS = [
                 <span class="badge bg-primary me-1">
                     <?= htmlspecialchars($row['sheet_name']) ?>
                 </span>
-                <?php if (!empty($row['section'])): ?>
-                    <span class="badge bg-info text-dark">
-                        <?= htmlspecialchars($row['section']) ?>
-                    </span>
-                <?php endif; ?>
                 <span class="text-muted ms-2">Record #<?= (int) $row['id'] ?></span>
             </div>
         </div>

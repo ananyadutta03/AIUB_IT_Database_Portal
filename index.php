@@ -16,7 +16,7 @@ if ($q !== '') {
         'room', 'location', 'designation', 'department',
         'cpu_model', 'hardware_description', 'notes',
         'device_model', 'device_serial', 'extension',
-        'ip_phone', 'section', 'switch_port',
+        'ip_phone', 'switch_port',
     ];
     $whereClause = implode(
         ' OR ',
@@ -47,7 +47,6 @@ $FIELD_LABELS = [
     'room'                  => 'Room',
     'location'              => 'Location',
     'building'              => 'Building',
-    'section'               => 'Section',
     'ip_address'            => 'IP Address',
     'mac_address'           => 'MAC Address',
     'switch_port'           => 'Switch / Port',
@@ -64,7 +63,6 @@ $FIELD_LABELS = [
     'device_model'          => 'Device Model',
     'device_serial'         => 'Device S/N',
     'status'                => 'Status',
-    'serial_no'             => 'Serial No.',
     'notes'                 => 'Notes',
 ];
 
@@ -74,7 +72,12 @@ require __DIR__ . '/includes/header.php';
 ?>
 
 <div class="mb-4">
-    <h3 class="mb-3"><i class="bi bi-speedometer2"></i> Dashboard</h3>
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h3 class="mb-0"><i class="bi bi-speedometer2"></i> Dashboard</h3>
+        <a href="<?= BASE_URL ?>/record.php?action=add" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Add New Record
+        </a>
+    </div>
     <form method="get" action="<?= BASE_URL ?>/index.php">
         <div class="input-group input-group-lg shadow-sm">
             <span class="input-group-text bg-white border-end-0">
@@ -159,9 +162,6 @@ require __DIR__ . '/includes/header.php';
                         </h5>
                         <div class="small text-muted">
                             <span class="badge bg-primary me-1"><?= htmlspecialchars($row['sheet_name']) ?></span>
-                            <?php if (!empty($row['section'])): ?>
-                                <span class="badge bg-info text-dark"><?= htmlspecialchars($row['section']) ?></span>
-                            <?php endif; ?>
                             <span class="ms-2">Record #<?= (int) $row['id'] ?></span>
                         </div>
                     </div>
@@ -169,6 +169,10 @@ require __DIR__ . '/includes/header.php';
                         <a href="<?= BASE_URL ?>/record.php?action=edit&id=<?= (int) $row['id'] ?>"
                            class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-pencil"></i> Edit
+                        </a>
+                        <a href="<?= BASE_URL ?>/record_print.php?id=<?= (int) $row['id'] ?>"
+                           target="_blank" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-printer"></i> Print
                         </a>
                     </div>
                 </div>

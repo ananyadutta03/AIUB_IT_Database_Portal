@@ -77,11 +77,6 @@ require __DIR__ . '/includes/header.php';
                             <strong><?= htmlspecialchars(
                                 $r['full_name'] ?: ($r['device_model'] ?: '—')
                             ) ?></strong>
-                            <?php if (!empty($r['section'])): ?>
-                                <div class="small text-muted">
-                                    <?= htmlspecialchars($r['section']) ?>
-                                </div>
-                            <?php endif; ?>
                         </td>
                         <td><?= htmlspecialchars($r['employee_id'] ?: '—') ?></td>
                         <td><?= htmlspecialchars($r['email'] ?: '—') ?></td>
@@ -110,6 +105,12 @@ require __DIR__ . '/includes/header.php';
                                class="btn btn-sm btn-outline-primary"
                                title="Edit">
                                 <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="<?= BASE_URL ?>/record_print.php?id=<?= (int) $r['id'] ?>"
+                               target="_blank"
+                               class="btn btn-sm btn-outline-secondary"
+                               title="Print / Save as PDF">
+                                <i class="bi bi-printer"></i>
                             </a>
                             <form method="post" action="<?= BASE_URL ?>/record.php"
                                   style="display:inline"
@@ -151,6 +152,9 @@ require __DIR__ . '/includes/header.php';
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
                     Close
                 </button>
+                <a href="#" target="_blank" class="btn btn-outline-secondary" id="viewModalPrint">
+                    <i class="bi bi-printer"></i> Print
+                </a>
                 <a href="#" class="btn btn-primary" id="viewModalEdit">
                     <i class="bi bi-pencil"></i> Edit Record
                 </a>
@@ -164,6 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var modalEl   = document.getElementById('viewModal');
     var modalBody = document.getElementById('viewModalBody');
     var modalEdit = document.getElementById('viewModalEdit');
+    var modalPrint = document.getElementById('viewModalPrint');
     if (!modalEl || !window.bootstrap) return;
     var modal = new bootstrap.Modal(modalEl);
 
@@ -177,6 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
         modalBody.innerHTML =
             '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
         modalEdit.href = '<?= BASE_URL ?>/record.php?action=edit&id=' + encodeURIComponent(id);
+        modalPrint.href = '<?= BASE_URL ?>/record_print.php?id=' + encodeURIComponent(id);
         modal.show();
 
         fetch('<?= BASE_URL ?>/record_view.php?id=' + encodeURIComponent(id))

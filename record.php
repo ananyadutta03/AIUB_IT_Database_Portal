@@ -7,9 +7,7 @@ require_once __DIR__ . '/includes/sheets_list.php';
 $FIELDS = [
     // group => [field_key => [label, type]]
     'Basic' => [
-        'sheet_name' => ['label' => 'Sheet',      'type' => 'select', 'required' => true],
-        'section'    => ['label' => 'Section',    'type' => 'text'],
-        'serial_no'  => ['label' => 'Serial No.', 'type' => 'text'],
+        'sheet_name' => ['label' => 'Sheet', 'type' => 'select', 'required' => true],
     ],
     'Identity' => [
         'full_name'      => ['label' => 'Full Name',     'type' => 'text'],

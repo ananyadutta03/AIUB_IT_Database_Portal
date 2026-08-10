@@ -1,4 +1,29 @@
-    </main>
+<style>
+  .developer-credit {
+    background: #ffffff;
+    color: #555;
+    text-align: center;
+    padding: 15px 10px;
+    margin: 0;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    border-top: 1px solid #eee;
+  }
+
+  .developer-credit a {
+    color: #222;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+
+  .developer-credit a:hover {
+    color: #007bff;
+  }
+</style>
+
+
+</main>
 </div>
 
 <!-- jQuery (required by DataTables) -->
@@ -10,7 +35,18 @@
 
 <!-- Bootstrap JS bundle (popovers, dropdowns, dismissible alerts) -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
+<div>
+    <p class="developer-credit">
+  Developed By -
+  <a href="https://ananyadutta03.github.io/my_portfolio" target="_blank">
+    Ananya Dutta
+  </a>
+  &amp;
+  <a href="https://www.swarupkst.com" target="_blank">
+    Swarup Biswas
+  </a>
+</p>
+</div>
 <script>
 // Auto-init DataTables on any <table class="datatable">
 $(function () {

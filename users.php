@@ -109,14 +109,26 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                             <?php if ((int)$user['id'] !== (int)$_SESSION['user_id']): ?>
 
-                                <a href="<?= BASE_URL ?>/delete_user.php?id=<?= (int) $user['id'] ?>"
-                                   class="btn btn-sm btn-outline-danger"
-                                   onclick="return confirm('Are you sure you want to delete this user?');">
+                                <form
+    method="POST"
+    action="<?= BASE_URL ?>/delete_user.php"
+    class="d-inline"
+    onsubmit="return confirm('Are you sure you want to delete this user?');"
+>
+    <input
+        type="hidden"
+        name="id"
+        value="<?= (int) $user['id'] ?>"
+    >
 
-                                    <i class="bi bi-trash"></i>
-                                    Delete
-
-                                </a>
+    <button
+        type="submit"
+        class="btn btn-sm btn-outline-danger"
+    >
+        <i class="bi bi-trash"></i>
+        Delete
+    </button>
+</form>
 
                             <?php endif; ?>
 

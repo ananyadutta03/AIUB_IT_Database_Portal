@@ -66,18 +66,27 @@ $hideSidebar = $hideSidebar ?? false;
         <i class="bi bi-hdd-network"></i> AIUB IT Database Portal
     </a>
     <div>
-        <span class="text-light me-3 small">
-            Hello, <strong><?= htmlspecialchars($_SESSION['username']) ?></strong>
-        </span>
-        <a href="<?= BASE_URL ?>/change_password.php"
+    <span class="text-light me-3 small">
+        Hello, <strong><?= htmlspecialchars($_SESSION['username']) ?></strong>
+    </span>
+
+    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+        <a href="<?= BASE_URL ?>/users.php"
            class="btn btn-sm btn-outline-light me-2">
-            <i class="bi bi-key"></i> Change Password
+            <i class="bi bi-people"></i> User Management
         </a>
-        <a href="<?= BASE_URL ?>/logout.php"
-           class="btn btn-sm btn-outline-light">
-            <i class="bi bi-box-arrow-right"></i> Logout
-        </a>
-    </div>
+    <?php endif; ?>
+
+    <a href="<?= BASE_URL ?>/change_password.php"
+       class="btn btn-sm btn-outline-light me-2">
+        <i class="bi bi-key"></i> Change Password
+    </a>
+
+    <a href="<?= BASE_URL ?>/logout.php"
+       class="btn btn-sm btn-outline-light">
+        <i class="bi bi-box-arrow-right"></i> Logout
+    </a>
+</div>
 </nav>
 
 <div class="d-flex">

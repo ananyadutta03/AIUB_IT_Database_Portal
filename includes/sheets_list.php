@@ -28,4 +28,10 @@ $ALL_SHEETS = [
     'Flap Door',
     'IP Phone',
     'Auditoriam',
+    'Resident-1',
+    'Resident-2',
+    'Resident-3',
+    'Resident-4',
+    'Resident-5',
+    'WiFi',
 ];

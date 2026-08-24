@@ -1,19 +1,11 @@
 <?php
-// =====================================================================
-// delete_user.php
-// Delete an existing user/admin.
-// Admin access only.
-// =====================================================================
 
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/includes/auth.php';
+require_once __DIR__ . '/includes/csrf.php';
 
 requireAdmin();
 
-
-// ---------------------------------------------------------------------
-// Only allow POST requests
-// ---------------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
     http_response_code(405);
@@ -22,9 +14,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 
-// ---------------------------------------------------------------------
-// Get user ID
-// ---------------------------------------------------------------------
 $userId = filter_input(
     INPUT_POST,
     'id',

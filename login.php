@@ -123,6 +123,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 600;
         }
 
+        /* Password field */
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper .form-control {
+            padding-right: 50px;
+        }
+
+        /* Show / Hide password button */
+        .toggle-password {
+            position: absolute;
+
+            top: 50%;
+            right: 12px;
+
+            transform: translateY(-50%);
+
+            border: none;
+            background: transparent;
+
+            color: #6c757d;
+
+            cursor: pointer;
+
+            padding: 5px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            z-index: 5;
+        }
+
+        .toggle-password:hover {
+            color: #212529;
+        }
+
+        .toggle-password:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .eye-icon {
+            width: 22px;
+            height: 22px;
+        }
+
     </style>
 
 </head>
@@ -165,13 +213,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Username -->
                         <div class="mb-3">
 
-                            <label class="form-label small text-muted">
+                            <label
+                                class="form-label small text-muted"
+                                for="username"
+                            >
                                 USERNAME
                             </label>
 
                             <input
                                 type="text"
                                 name="username"
+                                id="username"
                                 class="form-control form-control-lg"
                                 required
                                 autofocus
@@ -187,17 +239,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <!-- Password -->
                         <div class="mb-4">
 
-                            <label class="form-label small text-muted">
+                            <label
+                                class="form-label small text-muted"
+                                for="loginPassword"
+                            >
                                 PASSWORD
                             </label>
 
-                            <input
-                                type="password"
-                                name="password"
-                                class="form-control form-control-lg"
-                                required
-                                autocomplete="current-password"
-                            >
+                            <div class="password-wrapper">
+
+                                <input
+                                    type="password"
+                                    name="password"
+                                    id="loginPassword"
+                                    class="form-control form-control-lg"
+                                    required
+                                    autocomplete="current-password"
+                                >
+
+                                <button
+                                    type="button"
+                                    class="toggle-password"
+                                    id="togglePasswordBtn"
+                                    onclick="toggleLoginPassword()"
+                                    aria-label="Show password"
+                                    title="Show password"
+                                >
+
+                                    <!-- Eye icon -->
+                                    <svg
+                                        id="passwordEye"
+                                        class="eye-icon"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                    >
+
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            d="M2.458 12C3.732 7.943
+                                            7.523 5 12 5
+                                            c4.478 0 8.268 2.943
+                                            9.542 7
+                                            -1.274 4.057
+                                            -5.064 7
+                                            -9.542 7
+                                            -4.477 0
+                                            -8.268-2.943
+                                            -9.542-7z"
+                                        />
+
+                                        <circle
+                                            cx="12"
+                                            cy="12"
+                                            r="3"
+                                        />
+
+                                    </svg>
+
+                                </button>
+
+                            </div>
 
                         </div>
 
@@ -221,6 +326,101 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
 </div>
+
+
+<script>
+
+function toggleLoginPassword() {
+
+    const passwordInput =
+        document.getElementById('loginPassword');
+
+    const eyeIcon =
+        document.getElementById('passwordEye');
+
+    const toggleButton =
+        document.getElementById('togglePasswordBtn');
+
+
+    if (passwordInput.type === 'password') {
+
+        // Show password
+        passwordInput.type = 'text';
+
+        toggleButton.setAttribute(
+            'aria-label',
+            'Hide password'
+        );
+
+        toggleButton.setAttribute(
+            'title',
+            'Hide password'
+        );
+
+        // Eye-off icon
+        eyeIcon.innerHTML = `
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 3l18 18
+                M10.584 10.587
+                A2 2 0 0012 14
+                a2 2 0 001.414-3.414
+                M9.88 4.24
+                A9.94 9.94 0 0112 4
+                c4.478 0 8.268 2.943
+                9.542 7
+                a10.05 10.05 0 01-4.042 5.27
+                M6.228 6.228
+                A10.05 10.05 0 002.458 12
+                C3.732 16.057
+                7.523 19 12 19
+                c1.61 0 3.13-.38 4.47-1.053"
+            />
+        `;
+
+    } else {
+
+        // Hide password
+        passwordInput.type = 'password';
+
+        toggleButton.setAttribute(
+            'aria-label',
+            'Show password'
+        );
+
+        toggleButton.setAttribute(
+            'title',
+            'Show password'
+        );
+
+        // Normal eye icon
+        eyeIcon.innerHTML = `
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M2.458 12C3.732 7.943
+                7.523 5 12 5
+                c4.478 0 8.268 2.943
+                9.542 7
+                -1.274 4.057
+                -5.064 7
+                -9.542 7
+                -4.477 0
+                -8.268-2.943
+                -9.542-7z"
+            />
+
+            <circle
+                cx="12"
+                cy="12"
+                r="3"
+            />
+        `;
+    }
+}
+
+</script>
 
 </body>
 

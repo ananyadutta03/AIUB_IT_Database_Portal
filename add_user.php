@@ -11,6 +11,8 @@ $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
+
+
     $username  = trim($_POST['username'] ?? '');
     $fullName  = trim($_POST['full_name'] ?? '');
     $password  = $_POST['password'] ?? '';

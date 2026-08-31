@@ -142,14 +142,31 @@ require __DIR__ . '/includes/header.php';
     </div>
 
 <?php else: ?>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="text-muted">
-            Found <strong class="text-dark"><?= count($results) ?></strong>
-            <?= count($results) === 100 ? '(showing first 100)' : '' ?>
-            result<?= count($results) === 1 ? '' : 's' ?>
-            for <strong class="text-dark">"<?= htmlspecialchars($q) ?>"</strong>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+
+    <div class="text-muted">
+        Found
+        <strong class="text-dark"><?= count($results) ?></strong>
+
+        <?= count($results) === 100 ? '(showing first 100)' : '' ?>
+
+        result<?= count($results) === 1 ? '' : 's' ?>
+
+        for
+        <strong class="text-dark">
+            "<?= htmlspecialchars($q) ?>"
+        </strong>
     </div>
+
+    <a
+        href="<?= BASE_URL ?>/export_excel.php?q=<?= urlencode($q) ?>"
+        class="btn btn-success"
+    >
+        <i class="bi bi-file-earmark-excel"></i>
+        Export to Excel
+    </a>
+
+</div>
 
     <?php foreach ($results as $row): ?>
         <div class="card mb-3 result-card shadow-sm border-0">

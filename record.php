@@ -3,6 +3,8 @@ require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/sheets_list.php';
 
+requireCreatePermission();
+
 // All editable fields, grouped for the form layout
 $FIELDS = [
     // group => [field_key => [label, type]]
@@ -10,23 +12,23 @@ $FIELDS = [
         'sheet_name' => ['label' => 'Sheet', 'type' => 'select', 'required' => true],
     ],
     'Identity' => [
-        'full_name'      => ['label' => 'Full Name',     'type' => 'text'],
-        'employee_id'    => ['label' => 'Employee ID',   'type' => 'text'],
-        'email'          => ['label' => 'Email',         'type' => 'email'],
-        'username'       => ['label' => 'Username',      'type' => 'text'],
-        'contact_number' => ['label' => 'Contact Number','type' => 'text'],
-        'designation'    => ['label' => 'Designation',   'type' => 'text'],
-        'department'     => ['label' => 'Department',    'type' => 'text'],
+        'full_name'      => ['label' => 'Full Name',     'type' => 'text', 'required' => true],
+        'employee_id'    => ['label' => 'Employee ID',   'type' => 'text', 'required' => true],
+        'email'          => ['label' => 'Email',         'type' => 'email','required' => true],
+        'username'       => ['label' => 'Username',      'type' => 'text',],
+        'contact_number' => ['label' => 'Contact Number','type' => 'text', 'required' => true],
+        'designation'    => ['label' => 'Designation',   'type' => 'text', 'required' => true],
+        'department'     => ['label' => 'Department',    'type' => 'text', 'required' => true],
     ],
     'Location' => [
-        'room'     => ['label' => 'Room',     'type' => 'text'],
+        'room'     => ['label' => 'Room',     'type' => 'text', 'required' => true],
         'location' => ['label' => 'Location', 'type' => 'text'],
         'building' => ['label' => 'Building', 'type' => 'text'],
     ],
     'Network' => [
-        'ip_address'  => ['label' => 'IP Address',    'type' => 'text'],
-        'mac_address' => ['label' => 'MAC Address',   'type' => 'text'],
-        'switch_port' => ['label' => 'Switch / Port', 'type' => 'text'],
+        'ip_address'  => ['label' => 'IP Address',    'type' => 'text', 'required' => true],
+        'mac_address' => ['label' => 'MAC Address',   'type' => 'text', 'required' => true],
+        'switch_port' => ['label' => 'Switch / Port', 'type' => 'text', 'required' => true],
         'ip_phone'    => ['label' => 'IP Phone',      'type' => 'text'],
         'extension'   => ['label' => 'Extension',     'type' => 'text'],
     ],
@@ -43,7 +45,7 @@ $FIELDS = [
         'ups'     => ['label' => 'UPS',     'type' => 'text'],
     ],
     'Device-specific' => [
-        'device_model'  => ['label' => 'Device Model',  'type' => 'text'],
+        'device_model'  => ['label' => 'Device Model',  'type' => 'text', 'required' => true],
         'device_serial' => ['label' => 'Device Serial', 'type' => 'text'],
         'status'        => ['label' => 'Status',        'type' => 'text'],
     ],

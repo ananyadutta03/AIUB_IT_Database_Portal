@@ -29,9 +29,21 @@ $sheet = trim($_GET['name'] ?? '');
 |--------------------------------------------------------------------------
 | Validate Sheet Name
 |--------------------------------------------------------------------------
+|
+| Sheet names are now managed from the database.
+|
+| Only ACTIVE sheets can be opened.
+|
+| This replaces the old:
+|
+| in_array($sheet, $ALL_SHEETS, true)
+|
 */
 
-if (!in_array($sheet, $ALL_SHEETS, true)) {
+$sheetInfo = getActiveSheetByName($sheet);
+
+
+if (!$sheetInfo) {
 
     header(
         'Location: ' .
@@ -45,12 +57,22 @@ if (!in_array($sheet, $ALL_SHEETS, true)) {
 
 /*
 |--------------------------------------------------------------------------
+| Use Official Sheet Name From Database
+|--------------------------------------------------------------------------
+*/
+
+$sheet = $sheetInfo['sheet_name'];
+
+
+/*
+|--------------------------------------------------------------------------
 | Load Records
 |--------------------------------------------------------------------------
 */
 
 $stmt = $pdo->prepare(
-    'SELECT * FROM inventory
+    'SELECT *
+     FROM inventory
      WHERE sheet_name = ?
      ORDER BY id'
 );
@@ -69,6 +91,7 @@ $rows = $stmt->fetchAll();
 $pageTitle   = $sheet;
 $activeSheet = $sheet;
 
+
 require __DIR__ . '/includes/header.php';
 
 ?>
@@ -86,10 +109,16 @@ require __DIR__ . '/includes/header.php';
 
             <i class="bi bi-table"></i>
 
-            <?= htmlspecialchars($sheet) ?>
+            <?= htmlspecialchars(
+                $sheet,
+                ENT_QUOTES,
+                'UTF-8'
+            ) ?>
 
             <span class="badge bg-secondary fs-6 ms-2">
+
                 <?= count($rows) ?> rows
+
             </span>
 
         </h3>
@@ -149,7 +178,9 @@ require __DIR__ . '/includes/header.php';
             <i class="bi bi-inbox display-4 text-muted"></i>
 
             <p class="mt-3 mb-3 text-muted">
+
                 No records yet in this sheet.
+
             </p>
 
 
@@ -169,7 +200,9 @@ require __DIR__ . '/includes/header.php';
             <?php else: ?>
 
                 <span class="text-muted small">
+
                     No records available.
+
                 </span>
 
             <?php endif; ?>
@@ -271,7 +304,9 @@ require __DIR__ . '/includes/header.php';
                                     ?: (
                                         $r['device_model']
                                         ?: '—'
-                                    )
+                                    ),
+                                    ENT_QUOTES,
+                                    'UTF-8'
                                 ) ?>
 
                             </strong>
@@ -285,7 +320,9 @@ require __DIR__ . '/includes/header.php';
 
                             <?= htmlspecialchars(
                                 $r['employee_id']
-                                ?: '—'
+                                ?: '—',
+                                ENT_QUOTES,
+                                'UTF-8'
                             ) ?>
 
                         </td>
@@ -297,7 +334,9 @@ require __DIR__ . '/includes/header.php';
 
                             <?= htmlspecialchars(
                                 $r['email']
-                                ?: '—'
+                                ?: '—',
+                                ENT_QUOTES,
+                                'UTF-8'
                             ) ?>
 
                         </td>
@@ -309,7 +348,9 @@ require __DIR__ . '/includes/header.php';
 
                             <?= htmlspecialchars(
                                 $r['contact_number']
-                                ?: '—'
+                                ?: '—',
+                                ENT_QUOTES,
+                                'UTF-8'
                             ) ?>
 
                         </td>
@@ -324,7 +365,9 @@ require __DIR__ . '/includes/header.php';
                                 ?: (
                                     $r['location']
                                     ?: '—'
-                                )
+                                ),
+                                ENT_QUOTES,
+                                'UTF-8'
                             ) ?>
 
                         </td>
@@ -336,7 +379,9 @@ require __DIR__ . '/includes/header.php';
 
                             <?= htmlspecialchars(
                                 $r['ip_address']
-                                ?: '—'
+                                ?: '—',
+                                ENT_QUOTES,
+                                'UTF-8'
                             ) ?>
 
                         </td>
@@ -350,7 +395,9 @@ require __DIR__ . '/includes/header.php';
 
                                 <?= htmlspecialchars(
                                     $r['mac_address']
-                                    ?: '—'
+                                    ?: '—',
+                                    ENT_QUOTES,
+                                    'UTF-8'
                                 ) ?>
 
                             </small>
@@ -365,7 +412,9 @@ require __DIR__ . '/includes/header.php';
                             <?php if (!empty($r['department'])): ?>
 
                                 <?= htmlspecialchars(
-                                    $r['department']
+                                    $r['department'],
+                                    ENT_QUOTES,
+                                    'UTF-8'
                                 ) ?>
 
                                 <br>
@@ -377,7 +426,9 @@ require __DIR__ . '/includes/header.php';
 
                                 <?= htmlspecialchars(
                                     $r['designation']
-                                    ?: ''
+                                    ?: '',
+                                    ENT_QUOTES,
+                                    'UTF-8'
                                 ) ?>
 
                             </small>
@@ -474,7 +525,9 @@ require __DIR__ . '/includes/header.php';
                                         value="<?= htmlspecialchars(
                                             BASE_URL .
                                             '/sheet.php?name=' .
-                                            urlencode($sheet)
+                                            urlencode($sheet),
+                                            ENT_QUOTES,
+                                            'UTF-8'
                                         ) ?>"
                                     >
 
@@ -741,6 +794,7 @@ document.addEventListener(
                     modalPrint.href =
                         '<?= BASE_URL ?>/record_print.php?id=' +
                         encodeURIComponent(id);
+
                 }
 
 
@@ -758,6 +812,7 @@ document.addEventListener(
                     modalEdit.href =
                         '<?= BASE_URL ?>/record.php?action=edit&id=' +
                         encodeURIComponent(id);
+
                 }
 
 
@@ -793,6 +848,7 @@ document.addEventListener(
                         }
 
                         return r.text();
+
                     }
                 )
 
@@ -801,6 +857,7 @@ document.addEventListener(
 
                         modalBody.innerHTML =
                             html;
+
                     }
                 )
 
@@ -811,6 +868,7 @@ document.addEventListener(
                             '<div class="alert alert-danger m-3">' +
                             'Failed to load record details.' +
                             '</div>';
+
                     }
                 );
 
@@ -825,7 +883,6 @@ document.addEventListener(
 
 <?php
 
-require __DIR__ .
-    '/includes/footer.php';
+require __DIR__ . '/includes/footer.php';
 
 ?>

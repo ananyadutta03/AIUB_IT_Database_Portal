@@ -1,4 +1,7 @@
 <?php
+
+require_once __DIR__ . '/security_log.php';
+
 // =====================================================================
 // includes/auth.php
 //
@@ -397,6 +400,20 @@ function accessDenied(string $message = 'You do not have permission to access th
 function requireAdmin(): void
 {
     if (!isAdmin()) {
+
+        $user = currentUser();
+
+        logSecurityEvent(
+            $GLOBALS['pdo'],
+            $user['id'] !== null
+                ? (int) $user['id']
+                : null,
+            $user['username'] !== ''
+                ? $user['username']
+                : null,
+            'unauthorized_access',
+            'failed'
+        );
 
         accessDenied(
             'Administrator access is required.'

@@ -24,9 +24,6 @@ requireCreatePermission();
 |--------------------------------------------------------------------------
 | LOAD ACTIVE SHEETS
 |--------------------------------------------------------------------------
-|
-| Only active sheets are available when creating/editing records.
-|--------------------------------------------------------------------------
 */
 
 $ALL_SHEETS = [];
@@ -75,7 +72,6 @@ $FIELDS = [
 
     ],
 
-
     'Identity' => [
 
         'full_name' => [
@@ -103,24 +99,20 @@ $FIELDS = [
 
         'contact_number' => [
             'label' => 'Contact Number',
-            'type' => 'text',
-            'required' => true
+            'type' => 'text'
         ],
 
         'designation' => [
             'label' => 'Designation',
-            'type' => 'text',
-            'required' => true
+            'type' => 'text'
         ],
 
         'department' => [
             'label' => 'Department',
-            'type' => 'text',
-            'required' => true
+            'type' => 'text'
         ],
 
     ],
-
 
     'Location' => [
 
@@ -141,7 +133,6 @@ $FIELDS = [
         ],
 
     ],
-
 
     'Network' => [
 
@@ -175,7 +166,6 @@ $FIELDS = [
 
     ],
 
-
     'Hardware' => [
 
         'cpu_model' => [
@@ -193,6 +183,16 @@ $FIELDS = [
             'type' => 'text'
         ],
 
+        'storage' => [
+            'label' => 'Storage',
+            'type' => 'text'
+        ],
+
+        'gpu' => [
+            'label' => 'GPU',
+            'type' => 'text'
+        ],
+
         'monitor' => [
             'label' => 'Monitor',
             'type' => 'text'
@@ -204,7 +204,6 @@ $FIELDS = [
         ],
 
     ],
-
 
     'Peripherals' => [
 
@@ -225,13 +224,11 @@ $FIELDS = [
 
     ],
 
-
     'Device-specific' => [
 
         'device_model' => [
             'label' => 'Device Model',
-            'type' => 'text',
-            'required' => true
+            'type' => 'text'
         ],
 
         'device_serial' => [
@@ -245,7 +242,6 @@ $FIELDS = [
         ],
 
     ],
-
 
     'Other' => [
 
@@ -765,50 +761,392 @@ require __DIR__ . '/includes/header.php';
 
 ?>
 
-<div class="d-flex align-items-center mb-4">
 
-    <a
-        href="<?= BASE_URL ?>/<?= $record['sheet_name']
-            ? 'sheet.php?name=' .
-              urlencode(
-                  $record['sheet_name']
-              )
-            : 'index.php'
-        ?>"
-        class="btn btn-sm btn-outline-secondary me-3"
-    >
+<!-- ================================================================
+     RECORD PAGE DESIGN
+================================================================ -->
 
-        <i class="bi bi-arrow-left"></i>
+<style>
 
-        Back
+    /* ---------------------------------------------------------------
+       Page Header
+    --------------------------------------------------------------- */
 
-    </a>
+    .record-page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .record-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
+
+    .record-title-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e7f1ff;
+        color: #0d6efd;
+        font-size: 1.25rem;
+        flex-shrink: 0;
+    }
+
+    .record-page-title {
+        margin: 0;
+        font-size: 1.45rem;
+        font-weight: 650;
+        color: #212529;
+    }
+
+    .record-page-subtitle {
+        margin: 0.2rem 0 0;
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
 
 
-    <h3 class="mb-0">
+    /* ---------------------------------------------------------------
+       Back Button
+    --------------------------------------------------------------- */
 
-        <?php if ($action === 'edit'): ?>
+    .record-back-btn {
+        border-radius: 9px;
+        padding: 0.48rem 0.85rem;
+        font-weight: 500;
+        background: #fff;
+    }
 
-            <i class="bi bi-pencil"></i>
+    .record-back-btn:hover {
+        background: #f8f9fa;
+    }
 
-            Edit Record #<?= (int) $id ?>
 
-        <?php else: ?>
+    /* ---------------------------------------------------------------
+       Alerts
+    --------------------------------------------------------------- */
 
-            <i class="bi bi-plus-circle"></i>
+    .record-alert {
+        border: 0;
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
+        margin-bottom: 1rem;
+    }
 
-            Add New Record
 
-        <?php endif; ?>
+    /* ---------------------------------------------------------------
+       Main Form Card
+    --------------------------------------------------------------- */
 
-    </h3>
+    .record-form-card {
+        background: #fff;
+        border: 1px solid #e7e9ed;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.045);
+    }
+
+    .record-form-body {
+        padding: 1.5rem;
+    }
+
+
+    /* ---------------------------------------------------------------
+       Form Sections
+    --------------------------------------------------------------- */
+
+    .record-section {
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        margin-bottom: 1.25rem;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .record-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .record-section-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.85rem 1rem;
+        background: #f8f9fb;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .record-section-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #e7f1ff;
+        color: #0d6efd;
+        font-size: 0.95rem;
+    }
+
+    .record-section-title {
+        margin: 0;
+        font-size: 0.88rem;
+        font-weight: 650;
+        color: #343a40;
+    }
+
+    .record-section-description {
+        margin: 0.1rem 0 0;
+        color: #8a9199;
+        font-size: 0.72rem;
+    }
+
+    .record-section-body {
+        padding: 1.1rem;
+    }
+
+
+    /* ---------------------------------------------------------------
+       Form Fields
+    --------------------------------------------------------------- */
+
+    .record-field {
+        margin-bottom: 0.15rem;
+    }
+
+    .record-field .form-label {
+        color: #495057;
+        font-size: 0.78rem;
+        font-weight: 600;
+        margin-bottom: 0.42rem;
+    }
+
+    .record-field .required-mark {
+        color: #dc3545;
+        margin-left: 2px;
+    }
+
+    .record-field .form-control,
+    .record-field .form-select {
+        min-height: 42px;
+        border-radius: 8px;
+        border: 1px solid #dfe3e8;
+        font-size: 0.88rem;
+        padding: 0.55rem 0.75rem;
+        box-shadow: none;
+        transition: border-color 0.15s ease,
+                    box-shadow 0.15s ease;
+    }
+
+    .record-field textarea.form-control {
+        min-height: 92px;
+        resize: vertical;
+    }
+
+    .record-field .form-control:focus,
+    .record-field .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.18rem rgba(13, 110, 253, 0.10);
+    }
+
+    .record-field .form-control::placeholder {
+        color: #adb5bd;
+    }
+
+
+    /* ---------------------------------------------------------------
+       Footer / Actions
+    --------------------------------------------------------------- */
+
+    .record-form-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        background: #fafbfc;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .record-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+    }
+
+    .record-action-btn {
+        border-radius: 8px;
+        font-size: 0.84rem;
+        font-weight: 550;
+        padding: 0.55rem 1rem;
+    }
+
+    .record-save-btn {
+        min-width: 145px;
+    }
+
+
+    /* ---------------------------------------------------------------
+       Empty Sheet Warning
+    --------------------------------------------------------------- */
+
+    .record-empty-state {
+        border: 1px dashed #ffc107;
+        background: #fffaf0;
+        border-radius: 10px;
+        color: #664d03;
+        padding: 1rem 1.1rem;
+    }
+
+
+    /* ---------------------------------------------------------------
+       Responsive
+    --------------------------------------------------------------- */
+
+    @media (max-width: 768px) {
+
+        .record-page-header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .record-back-btn {
+            order: 2;
+        }
+
+        .record-form-body {
+            padding: 1rem;
+        }
+
+        .record-section-body {
+            padding: 0.9rem;
+        }
+
+        .record-form-footer {
+            align-items: stretch;
+            flex-direction: column;
+            padding: 1rem;
+        }
+
+        .record-actions {
+            width: 100%;
+            flex-direction: column-reverse;
+        }
+
+        .record-action-btn,
+        .record-save-btn {
+            width: 100%;
+        }
+
+    }
+
+</style>
+
+
+<?php
+
+/*
+|--------------------------------------------------------------------------
+| Section Icons
+|--------------------------------------------------------------------------
+*/
+
+$sectionIcons = [
+
+    'Basic'          => 'bi-grid-1x2',
+    'Identity'       => 'bi-person-vcard',
+    'Location'       => 'bi-geo-alt',
+    'Network'        => 'bi-diagram-3',
+    'Hardware'       => 'bi-pc-display',
+    'Peripherals'    => 'bi-printer',
+    'Device-specific'=> 'bi-device-ssd',
+    'Other'          => 'bi-sticky',
+
+];
+
+?>
+
+
+<!-- ================================================================
+     PAGE HEADER
+================================================================ -->
+
+<div class="record-page-header">
+
+    <div class="record-title-wrap">
+
+        <a
+            href="<?= BASE_URL ?>/<?= $record['sheet_name']
+                ? 'sheet.php?name=' .
+                  urlencode(
+                      $record['sheet_name']
+                  )
+                : 'index.php'
+            ?>"
+            class="btn btn-outline-secondary btn-sm record-back-btn"
+        >
+
+            <i class="bi bi-arrow-left me-1"></i>
+
+            Back
+
+        </a>
+
+
+        <div class="record-title-icon">
+
+            <i class="bi <?= $action === 'edit'
+                ? 'bi-pencil-square'
+                : 'bi-plus-lg'
+            ?>"></i>
+
+        </div>
+
+
+        <div>
+
+            <h3 class="record-page-title">
+
+                <?= $action === 'edit'
+                    ? 'Edit Record #' . (int) $id
+                    : 'Add New Record'
+                ?>
+
+            </h3>
+
+
+            <p class="record-page-subtitle">
+
+                <?= $action === 'edit'
+                    ? 'Update the information associated with this inventory record.'
+                    : 'Enter the required information to create a new inventory record.'
+                ?>
+
+            </p>
+
+        </div>
+
+    </div>
 
 </div>
 
 
+<!-- ================================================================
+     ERROR MESSAGE
+================================================================ -->
+
 <?php if ($error): ?>
 
-    <div class="alert alert-danger">
+    <div class="alert alert-danger record-alert" role="alert">
+
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
 
         <?= htmlspecialchars(
             $error,
@@ -821,24 +1159,46 @@ require __DIR__ . '/includes/header.php';
 <?php endif; ?>
 
 
+<!-- ================================================================
+     NO ACTIVE SHEETS
+================================================================ -->
+
 <?php if (empty($ALL_SHEETS)): ?>
 
-    <div class="alert alert-warning">
+    <div class="record-empty-state mb-3">
 
-        <strong>No active sheets available.</strong>
+        <div class="d-flex align-items-start">
 
-        Please ask an administrator to create or activate a sheet
-        before adding a record.
+            <i class="bi bi-exclamation-triangle-fill me-2 mt-1"></i>
+
+            <div>
+
+                <strong>No active sheets available.</strong>
+
+                <div class="small mt-1">
+
+                    Please ask an administrator to create or activate
+                    a sheet before adding a record.
+
+                </div>
+
+            </div>
+
+        </div>
 
     </div>
 
 <?php endif; ?>
 
 
+<!-- ================================================================
+     MAIN FORM
+================================================================ -->
+
 <form
     method="post"
     action="<?= BASE_URL ?>/record.php"
-    class="card shadow-sm border-0"
+    class="record-form-card"
 >
 
     <input
@@ -859,7 +1219,7 @@ require __DIR__ . '/includes/header.php';
     <?php endif; ?>
 
 
-    <div class="card-body p-4">
+    <div class="record-form-body">
 
 
         <?php foreach (
@@ -867,184 +1227,308 @@ require __DIR__ . '/includes/header.php';
         ): ?>
 
 
-            <h6
-                class="text-muted text-uppercase small fw-bold mt-3 mb-3 pb-2 border-bottom"
-            >
+            <?php
 
-                <?= htmlspecialchars(
-                    $group,
-                    ENT_QUOTES,
-                    'UTF-8'
-                ) ?>
+            $sectionIcon =
+                $sectionIcons[$group]
+                ?? 'bi-folder';
 
-            </h6>
+            ?>
 
 
-            <div class="row g-3 mb-2">
+            <!-- ====================================================
+                 FORM SECTION
+            ===================================================== -->
+
+            <section class="record-section">
 
 
-                <?php foreach (
-                    $groupFields as $key => $meta
-                ):
+                <div class="record-section-header">
 
-                    $value =
-                        $record[$key] ?? '';
+                    <div class="record-section-icon">
 
-                    $colWidth =
-                        $meta['type'] === 'textarea'
-                            ? 12
-                            : 4;
-
-                ?>
-
-
-                    <div
-                        class="col-md-6 col-lg-<?= $colWidth ?>"
-                    >
-
-
-                        <label
-                            class="form-label small"
-                        >
-
-                            <?= htmlspecialchars(
-                                $meta['label'],
-                                ENT_QUOTES,
-                                'UTF-8'
-                            ) ?>
-
-
-                            <?php if (
-                                !empty(
-                                    $meta['required']
-                                )
-                            ): ?>
-
-                                <span class="text-danger">
-                                    *
-                                </span>
-
-                            <?php endif; ?>
-
-
-                        </label>
-
-
-                        <?php if (
-                            $meta['type'] === 'select' &&
-                            $key === 'sheet_name'
-                        ): ?>
-
-
-                            <select
-                                name="<?= htmlspecialchars(
-                                    $key,
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                ) ?>"
-                                class="form-select"
-                                <?= !empty(
-                                    $meta['required']
-                                )
-                                    ? 'required'
-                                    : ''
-                                ?>
-                            >
-
-                                <option value="">
-                                    — choose sheet —
-                                </option>
-
-
-                                <?php foreach (
-                                    $ALL_SHEETS as $opt
-                                ): ?>
-
-                                    <option
-                                        value="<?= htmlspecialchars(
-                                            $opt,
-                                            ENT_QUOTES,
-                                            'UTF-8'
-                                        ) ?>"
-                                        <?= $value === $opt
-                                            ? 'selected'
-                                            : ''
-                                        ?>
-                                    >
-
-                                        <?= htmlspecialchars(
-                                            $opt,
-                                            ENT_QUOTES,
-                                            'UTF-8'
-                                        ) ?>
-
-                                    </option>
-
-                                <?php endforeach; ?>
-
-
-                            </select>
-
-
-                        <?php elseif (
-                            $meta['type'] === 'textarea'
-                        ): ?>
-
-
-                            <textarea
-                                name="<?= htmlspecialchars(
-                                    $key,
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                ) ?>"
-                                class="form-control"
-                                rows="3"
-                            ><?= htmlspecialchars(
-                                $value,
-                                ENT_QUOTES,
-                                'UTF-8'
-                            ) ?></textarea>
-
-
-                        <?php else: ?>
-
-
-                            <input
-                                type="<?= htmlspecialchars(
-                                    $meta['type'],
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                ) ?>"
-                                name="<?= htmlspecialchars(
-                                    $key,
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                ) ?>"
-                                class="form-control"
-                                value="<?= htmlspecialchars(
-                                    $value,
-                                    ENT_QUOTES,
-                                    'UTF-8'
-                                ) ?>"
-                                <?= !empty(
-                                    $meta['required']
-                                )
-                                    ? 'required'
-                                    : ''
-                                ?>
-                            >
-
-
-                        <?php endif; ?>
-
+                        <i class="bi <?= $sectionIcon ?>"></i>
 
                     </div>
 
 
-                <?php endforeach; ?>
+                    <div>
+
+                        <h6 class="record-section-title">
+
+                            <?= htmlspecialchars(
+                                $group,
+                                ENT_QUOTES,
+                                'UTF-8'
+                            ) ?>
+
+                        </h6>
 
 
-            </div>
+                        <p class="record-section-description">
+
+                            <?php
+
+                            $descriptions = [
+
+                                'Basic' =>
+                                    'Select the inventory sheet for this record.',
+
+                                'Identity' =>
+                                    'Employee and user identification information.',
+
+                                'Location' =>
+                                    'Physical location and room information.',
+
+                                'Network' =>
+                                    'Network addressing and connectivity information.',
+
+                                'Hardware' =>
+                                    'Computer hardware and system specifications.',
+
+                                'Peripherals' =>
+                                    'Connected peripheral devices and accessories.',
+
+                                'Device-specific' =>
+                                    'Device model, serial number and current status.',
+
+                                'Other' =>
+                                    'Additional notes and relevant information.',
+
+                            ];
+
+                            echo htmlspecialchars(
+                                $descriptions[$group]
+                                ?? 'Additional information.',
+                                ENT_QUOTES,
+                                'UTF-8'
+                            );
+
+                            ?>
+
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="record-section-body">
+
+                    <div class="row g-3">
+
+
+                        <?php foreach (
+                            $groupFields as $key => $meta
+                        ):
+
+                            $value =
+                                $record[$key] ?? '';
+
+                            $colWidth =
+                                $meta['type'] === 'textarea'
+                                    ? 12
+                                    : 4;
+
+                        ?>
+
+
+                            <div
+                                class="col-12 col-md-6 col-lg-<?= $colWidth ?>"
+                            >
+
+                                <div class="record-field">
+
+
+                                    <!-- Field Label -->
+
+                                    <label
+                                        for="field_<?= htmlspecialchars(
+                                            $key,
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>"
+                                        class="form-label"
+                                    >
+
+                                        <?= htmlspecialchars(
+                                            $meta['label'],
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?>
+
+
+                                        <?php if (
+                                            !empty(
+                                                $meta['required']
+                                            )
+                                        ): ?>
+
+                                            <span class="required-mark">
+                                                *
+                                            </span>
+
+                                        <?php endif; ?>
+
+                                    </label>
+
+
+                                    <!-- Sheet Select -->
+
+                                    <?php if (
+                                        $meta['type'] === 'select' &&
+                                        $key === 'sheet_name'
+                                    ): ?>
+
+
+                                        <select
+                                            id="field_<?= htmlspecialchars(
+                                                $key,
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
+                                            name="<?= htmlspecialchars(
+                                                $key,
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
+                                            class="form-select"
+                                            <?= !empty(
+                                                $meta['required']
+                                            )
+                                                ? 'required'
+                                                : ''
+                                            ?>
+                                        >
+
+                                            <option value="">
+                                                — Choose Sheet —
+                                            </option>
+
+
+                                            <?php foreach (
+                                                $ALL_SHEETS as $opt
+                                            ): ?>
+
+                                                <option
+                                                    value="<?= htmlspecialchars(
+                                                        $opt,
+                                                        ENT_QUOTES,
+                                                        'UTF-8'
+                                                    ) ?>"
+                                                    <?= $value === $opt
+                                                        ? 'selected'
+                                                        : ''
+                                                    ?>
+                                                >
+
+                                                    <?= htmlspecialchars(
+                                                        $opt,
+                                                        ENT_QUOTES,
+                                                        'UTF-8'
+                                                    ) ?>
+
+                                                </option>
+
+                                            <?php endforeach; ?>
+
+
+                                        </select>
+
+
+                                    <!-- Textarea -->
+
+                                    <?php elseif (
+                                        $meta['type'] === 'textarea'
+                                    ): ?>
+
+
+                                        <textarea
+                                            id="field_<?= htmlspecialchars(
+                                                $key,
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
+                                            name="<?= htmlspecialchars(
+                                                $key,
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
+                                            class="form-control"
+                                            rows="3"
+                                            placeholder="Enter <?= htmlspecialchars(
+                                                strtolower(
+                                                    $meta['label']
+                                                ),
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
+                                        ><?= htmlspecialchars(
+                                            $value,
+                                            ENT_QUOTES,
+                                            'UTF-8'
+                                        ) ?></textarea>
+
+
+                                    <!-- Normal Input -->
+
+                                    <?php else: ?>
+
+
+                                        <input
+                                            id="field_<?= htmlspecialchars(
+                                                $key,
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
+                                            type="<?= htmlspecialchars(
+                                                $meta['type'],
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
+                                            name="<?= htmlspecialchars(
+                                                $key,
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
+                                            class="form-control"
+                                            value="<?= htmlspecialchars(
+                                                $value,
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
+                                            placeholder="Enter <?= htmlspecialchars(
+                                                strtolower(
+                                                    $meta['label']
+                                                ),
+                                                ENT_QUOTES,
+                                                'UTF-8'
+                                            ) ?>"
+                                            <?= !empty(
+                                                $meta['required']
+                                            )
+                                                ? 'required'
+                                                : ''
+                                            ?>
+                                        >
+
+
+                                    <?php endif; ?>
+
+
+                                </div>
+
+                            </div>
+
+
+                        <?php endforeach; ?>
+
+
+                    </div>
+
+                </div>
+
+            </section>
 
 
         <?php endforeach; ?>
@@ -1053,10 +1537,14 @@ require __DIR__ . '/includes/header.php';
     </div>
 
 
-    <div
-        class="card-footer d-flex justify-content-between bg-white py-3"
-    >
+    <!-- ============================================================
+         FORM FOOTER
+    ============================================================= -->
 
+    <div class="record-form-footer">
+
+
+        <!-- Cancel -->
 
         <a
             href="<?= BASE_URL ?>/<?= $record['sheet_name']
@@ -1066,46 +1554,50 @@ require __DIR__ . '/includes/header.php';
                   )
                 : 'index.php'
             ?>"
-            class="btn btn-outline-secondary"
+            class="btn btn-outline-secondary record-action-btn"
         >
+
+            <i class="bi bi-x-lg me-1"></i>
 
             Cancel
 
         </a>
 
 
-        <div>
+        <div class="record-actions">
 
+
+            <!-- Delete -->
 
             <?php if ($id > 0): ?>
 
-
                 <button
                     type="button"
-                    class="btn btn-outline-danger me-2"
+                    class="btn btn-outline-danger record-action-btn"
                     onclick="if(confirm('Delete this record permanently? This cannot be undone.')) document.getElementById('delForm').submit();"
                 >
 
-                    <i class="bi bi-trash"></i>
+                    <i class="bi bi-trash3 me-1"></i>
 
                     Delete
 
                 </button>
 
-
             <?php endif; ?>
 
 
+            <!-- Save -->
+
             <button
                 type="submit"
-                class="btn btn-primary px-4"
+                class="btn btn-primary record-action-btn record-save-btn"
                 <?= empty($ALL_SHEETS)
                     ? 'disabled'
                     : ''
                 ?>
             >
 
-                <i class="bi bi-check-lg"></i>
+                <i class="bi bi-check2-circle me-1"></i>
 
                 <?= $id > 0
                     ? 'Save Changes'
@@ -1124,6 +1616,9 @@ require __DIR__ . '/includes/header.php';
 </form>
 
 
+<!-- ================================================================
+     DELETE FORM
+================================================================ -->
 
 <?php if ($id > 0): ?>
 
@@ -1148,7 +1643,6 @@ require __DIR__ . '/includes/header.php';
             value="<?= (int) $id ?>"
         >
 
-
     </form>
 
 
@@ -1156,6 +1650,12 @@ require __DIR__ . '/includes/header.php';
 
 
 <?php
+
+/*
+|--------------------------------------------------------------------------
+| FOOTER
+|--------------------------------------------------------------------------
+*/
 
 require __DIR__ . '/includes/footer.php';
 

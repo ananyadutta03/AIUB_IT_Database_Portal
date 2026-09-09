@@ -74,9 +74,11 @@ require __DIR__ . '/includes/header.php';
 <div class="mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <h3 class="mb-0"><i class="bi bi-speedometer2"></i> Dashboard</h3>
-        <a href="<?= BASE_URL ?>/record.php?action=add" class="btn btn-primary">
-            <i class="bi bi-plus-lg"></i> Add New Record
-        </a>
+        <?php if (in_array($_SESSION['role'] ?? '', ['admin', 'user'], true)): ?>
+    <a href="<?= BASE_URL ?>/record.php?action=add" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Add New Record
+    </a>
+<?php endif; ?>
     </div>
     <form method="get" action="<?= BASE_URL ?>/index.php">
         <div class="input-group input-group-lg shadow-sm">
@@ -158,13 +160,13 @@ require __DIR__ . '/includes/header.php';
         </strong>
     </div>
 
-    <a
+    <!-- <a
         href="<?= BASE_URL ?>/export_excel.php?q=<?= urlencode($q) ?>"
         class="btn btn-success"
     >
         <i class="bi bi-file-earmark-excel"></i>
         Export to Excel
-    </a>
+    </a> -->
 
 </div>
 
@@ -182,16 +184,21 @@ require __DIR__ . '/includes/header.php';
                             <span class="ms-2">Record #<?= (int) $row['id'] ?></span>
                         </div>
                     </div>
+
                     <div>
-                        <a href="<?= BASE_URL ?>/record.php?action=edit&id=<?= (int) $row['id'] ?>"
-                           class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-pencil"></i> Edit
-                        </a>
+                        <?php if (in_array($_SESSION['role'] ?? '', ['admin', 'user'], true)): ?>
+                            <a href="<?= BASE_URL ?>/record.php?action=edit&id=<?= (int) $row['id'] ?>"
+                            class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil"></i> Edit
+                            </a>
+                        <?php endif; ?>
+
                         <a href="<?= BASE_URL ?>/record_print.php?id=<?= (int) $row['id'] ?>"
-                           target="_blank" class="btn btn-sm btn-outline-secondary">
+                        target="_blank" class="btn btn-sm btn-outline-secondary">
                             <i class="bi bi-printer"></i> Print
                         </a>
                     </div>
+
                 </div>
 
                 <!-- Field grid -->

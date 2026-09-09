@@ -1,80 +1,481 @@
 <?php
 require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/includes/security_log.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Already logged in? Skip the form and go to dashboard.
+
+// ---------------------------------------------------------------------
+// Already logged in
+// ---------------------------------------------------------------------
+
 if (isset($_SESSION['user_id'])) {
-    header('Location: ' . BASE_URL . '/index.php');
+
+    header(
+        'Location: ' .
+        BASE_URL .
+        '/index.php'
+    );
+
     exit;
 }
 
+
 $error = '';
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $username = trim($_POST['username'] ?? '');
+    $username = trim(
+        $_POST['username'] ?? ''
+    );
+
     $password = $_POST['password'] ?? '';
 
-    // -------------------------------------------------------------
+
+    // -----------------------------------------------------------------
     // Validate input
-    // -------------------------------------------------------------
+    // -----------------------------------------------------------------
+
     if ($username === '' || $password === '') {
 
-        $error = 'Please enter both username and password.';
+        /*
+         * Record incomplete login attempt.
+         *
+         * No user_id because authentication has not happened.
+         */
+        logSecurityEvent(
+            $pdo,
+            null,
+            $username !== '' ? $username : null,
+            'failed_login',
+            'failed'
+        );
+
+        $error =
+            'Please enter both username and password.';
 
     } else {
 
-        // ---------------------------------------------------------
+        // -------------------------------------------------------------
         // Get user from database
-        // ---------------------------------------------------------
+        // -------------------------------------------------------------
+
         $stmt = $pdo->prepare(
             'SELECT
                 id,
                 username,
                 password_hash,
                 full_name,
-                role
+                role,
+                failed_login_attempts,
+                locked_until
              FROM users
              WHERE username = ?
              LIMIT 1'
         );
 
-        $stmt->execute([$username]);
+        $stmt->execute([
+            $username
+        ]);
 
         $user = $stmt->fetch();
 
-        // ---------------------------------------------------------
-        // Verify username and password
-        // ---------------------------------------------------------
-        if ($user && password_verify($password, $user['password_hash'])) {
 
-            // Regenerate session ID to prevent session fixation
-            session_regenerate_id(true);
+        // -------------------------------------------------------------
+        // Check account lock
+        // -------------------------------------------------------------
 
-            // -----------------------------------------------------
-            // Store authenticated user information in session
-            // -----------------------------------------------------
-            $_SESSION['user_id']   = (int) $user['id'];
-            $_SESSION['username']  = $user['username'];
-            $_SESSION['full_name'] = $user['full_name'];
-            $_SESSION['role']      = $user['role'];
+        if ($user && !empty($user['locked_until'])) {
 
-            // -----------------------------------------------------
-            // Redirect to dashboard
-            // -----------------------------------------------------
-            header('Location: ' . BASE_URL . '/index.php');
-            exit;
+            $lockedUntilTimestamp = strtotime(
+                $user['locked_until']
+            );
+
+            $currentTimestamp = time();
+
+
+            // ---------------------------------------------------------
+            // Account is still locked
+            // ---------------------------------------------------------
+
+            if ($lockedUntilTimestamp > $currentTimestamp) {
+
+                $remainingSeconds =
+                    $lockedUntilTimestamp - $currentTimestamp;
+
+                $remainingMinutes =
+                    ceil($remainingSeconds / 60);
+
+
+                // Record login attempt while account is locked
+                logSecurityEvent(
+                    $pdo,
+                    (int) $user['id'],
+                    $user['username'],
+                    'failed_login',
+                    'failed'
+                );
+
+
+                $error =
+                    "Your account is temporarily locked. Please try again in {$remainingMinutes} minute(s).";
+
+
+            } else {
+
+                // -----------------------------------------------------
+                // Lock period has expired
+                // Automatically unlock the account
+                // -----------------------------------------------------
+
+                $stmt = $pdo->prepare(
+                    'UPDATE users
+                     SET failed_login_attempts = 0,
+                         locked_until = NULL
+                     WHERE id = ?'
+                );
+
+                $stmt->execute([
+                    $user['id']
+                ]);
+
+
+                // Update local values
+                $user['failed_login_attempts'] = 0;
+                $user['locked_until'] = null;
+
+
+                // -----------------------------------------------------
+                // Continue with password verification
+                // -----------------------------------------------------
+
+                if (
+                    password_verify(
+                        $password,
+                        $user['password_hash']
+                    )
+                ) {
+
+                    // -------------------------------------------------
+                    // Successful login
+                    // Reset failed attempts
+                    // -------------------------------------------------
+
+                    $stmt = $pdo->prepare(
+                        'UPDATE users
+                         SET failed_login_attempts = 0,
+                             locked_until = NULL
+                         WHERE id = ?'
+                    );
+
+                    $stmt->execute([
+                        $user['id']
+                    ]);
+
+
+                    // -------------------------------------------------
+                    // Regenerate session ID
+                    // Prevent session fixation
+                    // -------------------------------------------------
+
+                    session_regenerate_id(true);
+
+
+                    // -------------------------------------------------
+                    // Store authenticated user information
+                    // -------------------------------------------------
+
+                    $_SESSION['user_id'] =
+                        (int) $user['id'];
+
+                    $_SESSION['username'] =
+                        $user['username'];
+
+                    $_SESSION['full_name'] =
+                        $user['full_name'];
+
+                    $_SESSION['role'] =
+                        $user['role'];
+
+
+                    // -------------------------------------------------
+                    // Record successful login
+                    // -------------------------------------------------
+
+                    logSecurityEvent(
+                        $pdo,
+                        (int) $user['id'],
+                        $user['username'],
+                        'login',
+                        'success'
+                    );
+
+
+                    // -------------------------------------------------
+                    // Redirect to dashboard
+                    // -------------------------------------------------
+
+                    header(
+                        'Location: ' .
+                        BASE_URL .
+                        '/index.php'
+                    );
+
+                    exit;
+
+                } else {
+
+                    // -------------------------------------------------
+                    // Failed login after previous lock expired
+                    // -------------------------------------------------
+
+                    $failedAttempts = 1;
+
+
+                    $stmt = $pdo->prepare(
+                        'UPDATE users
+                         SET failed_login_attempts = ?
+                         WHERE id = ?'
+                    );
+
+                    $stmt->execute([
+                        $failedAttempts,
+                        $user['id']
+                    ]);
+
+
+                    // -------------------------------------------------
+                    // Security log
+                    // -------------------------------------------------
+
+                    logSecurityEvent(
+                        $pdo,
+                        (int) $user['id'],
+                        $user['username'],
+                        'failed_login',
+                        'failed'
+                    );
+
+
+                    $remaining =
+                        5 - $failedAttempts;
+
+
+                    $error =
+                        "Invalid username or password. {$remaining} attempt(s) remaining.";
+                }
+            }
 
         } else {
 
-            $error = 'Invalid username or password.';
+            // ---------------------------------------------------------
+            // Account is not currently locked
+            // ---------------------------------------------------------
+
+            if (
+                $user &&
+                password_verify(
+                    $password,
+                    $user['password_hash']
+                )
+            ) {
+
+                // -----------------------------------------------------
+                // Successful login
+                // Reset failed attempts
+                // -----------------------------------------------------
+
+                $stmt = $pdo->prepare(
+                    'UPDATE users
+                     SET failed_login_attempts = 0,
+                         locked_until = NULL
+                     WHERE id = ?'
+                );
+
+                $stmt->execute([
+                    $user['id']
+                ]);
+
+
+                // -----------------------------------------------------
+                // Regenerate session ID
+                // Prevent session fixation
+                // -----------------------------------------------------
+
+                session_regenerate_id(true);
+
+
+                // -----------------------------------------------------
+                // Store authenticated user information
+                // -----------------------------------------------------
+
+                $_SESSION['user_id'] =
+                    (int) $user['id'];
+
+                $_SESSION['username'] =
+                    $user['username'];
+
+                $_SESSION['full_name'] =
+                    $user['full_name'];
+
+                $_SESSION['role'] =
+                    $user['role'];
+
+
+                // -----------------------------------------------------
+                // Record successful login
+                // -----------------------------------------------------
+
+                logSecurityEvent(
+                    $pdo,
+                    (int) $user['id'],
+                    $user['username'],
+                    'login',
+                    'success'
+                );
+
+
+                // -----------------------------------------------------
+                // Redirect to dashboard
+                // -----------------------------------------------------
+
+                header(
+                    'Location: ' .
+                    BASE_URL .
+                    '/index.php'
+                );
+
+                exit;
+
+
+            } else {
+
+                // -----------------------------------------------------
+                // Failed login
+                // -----------------------------------------------------
+
+                if ($user) {
+
+                    $failedAttempts =
+                        (int) $user['failed_login_attempts'] + 1;
+
+
+                    // -------------------------------------------------
+                    // 5 failed attempts reached
+                    // Lock account for 10 minutes
+                    // -------------------------------------------------
+
+                    if ($failedAttempts >= 5) {
+
+                        $lockedUntil =
+                            date(
+                                'Y-m-d H:i:s',
+                                time() + (10 * 60)
+                            );
+
+
+                        $stmt = $pdo->prepare(
+                            'UPDATE users
+                             SET failed_login_attempts = 5,
+                                 locked_until = ?
+                             WHERE id = ?'
+                        );
+
+                        $stmt->execute([
+                            $lockedUntil,
+                            $user['id']
+                        ]);
+
+
+                        // -------------------------------------------------
+                        // Record lock-triggering failed login
+                        // -------------------------------------------------
+
+                        logSecurityEvent(
+                            $pdo,
+                            (int) $user['id'],
+                            $user['username'],
+                            'failed_login',
+                            'failed'
+                        );
+
+
+                        $error =
+                            'Too many failed login attempts. Your account has been locked for 10 minutes.';
+
+
+                    } else {
+
+                        // -------------------------------------------------
+                        // Save failed attempt count
+                        // -------------------------------------------------
+
+                        $stmt = $pdo->prepare(
+                            'UPDATE users
+                             SET failed_login_attempts = ?
+                             WHERE id = ?'
+                        );
+
+                        $stmt->execute([
+                            $failedAttempts,
+                            $user['id']
+                        ]);
+
+
+                        // -------------------------------------------------
+                        // Record failed login
+                        // -------------------------------------------------
+
+                        logSecurityEvent(
+                            $pdo,
+                            (int) $user['id'],
+                            $user['username'],
+                            'failed_login',
+                            'failed'
+                        );
+
+
+                        $remaining =
+                            5 - $failedAttempts;
+
+
+                        $error =
+                            "Invalid username or password. {$remaining} attempt(s) remaining.";
+                    }
+
+
+                } else {
+
+                    // -------------------------------------------------
+                    // Username does not exist
+                    // -------------------------------------------------
+
+                    logSecurityEvent(
+                        $pdo,
+                        null,
+                        $username,
+                        'failed_login',
+                        'failed'
+                    );
+
+
+                    /*
+                     * Keep the message generic.
+                     *
+                     * This prevents username enumeration.
+                     */
+                    $error =
+                        'Invalid username or password.';
+                }
+            }
         }
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -123,7 +524,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-weight: 600;
         }
 
-        /* Password field */
         .password-wrapper {
             position: relative;
         }
@@ -132,7 +532,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding-right: 50px;
         }
 
-        /* Show / Hide password button */
         .toggle-password {
             position: absolute;
 
@@ -175,6 +574,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 </head>
 
+
 <body>
 
 <div class="container">
@@ -211,6 +611,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <form method="post" novalidate>
 
                         <!-- Username -->
+
                         <div class="mb-3">
 
                             <label
@@ -237,6 +638,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
                         <!-- Password -->
+
                         <div class="mb-4">
 
                             <label
@@ -266,7 +668,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     title="Show password"
                                 >
 
-                                    <!-- Eye icon -->
                                     <svg
                                         id="passwordEye"
                                         class="eye-icon"
@@ -308,6 +709,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
                         <!-- Login button -->
+
                         <button
                             type="submit"
                             class="btn btn-primary btn-lg w-100"
@@ -344,7 +746,6 @@ function toggleLoginPassword() {
 
     if (passwordInput.type === 'password') {
 
-        // Show password
         passwordInput.type = 'text';
 
         toggleButton.setAttribute(
@@ -357,7 +758,6 @@ function toggleLoginPassword() {
             'Hide password'
         );
 
-        // Eye-off icon
         eyeIcon.innerHTML = `
             <path
                 stroke-linecap="round"
@@ -381,7 +781,6 @@ function toggleLoginPassword() {
 
     } else {
 
-        // Hide password
         passwordInput.type = 'password';
 
         toggleButton.setAttribute(
@@ -394,7 +793,6 @@ function toggleLoginPassword() {
             'Show password'
         );
 
-        // Normal eye icon
         eyeIcon.innerHTML = `
             <path
                 stroke-linecap="round"
@@ -421,6 +819,7 @@ function toggleLoginPassword() {
 }
 
 </script>
+
 
 </body>
 

@@ -71,6 +71,13 @@ $hideSidebar = $hideSidebar ?? false;
     </span>
 
     <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
+        <a href="<?= BASE_URL ?>/admin/security_logs.php"
+           class="btn btn-sm btn-outline-light me-2">
+            <i class="bi bi-people"></i> Security Logs
+        </a>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
         <a href="<?= BASE_URL ?>/users.php"
            class="btn btn-sm btn-outline-light me-2">
             <i class="bi bi-people"></i> User Management
